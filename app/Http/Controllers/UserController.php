@@ -90,7 +90,7 @@ class UserController extends Controller
 
             'user' => 'required|unique:users,user,' . $id,
             'email' => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|min:8',
+            'password' => 'nullable|min:6',
             'role_id' => 'required|exists:roles,id'
         ]);
     
