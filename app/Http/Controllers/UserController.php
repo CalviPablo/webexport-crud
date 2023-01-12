@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -14,8 +15,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = User::all();
-        return $user;
+        $users = User::with('role')->get();
+        return $users;
     }
 
     /**
@@ -25,7 +26,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        // return view('users.create');
     }
 
     /**
@@ -36,23 +37,20 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'user' => 'required|unique:users',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'role_id' => 'required'
-        ]);
-
-        $user = new User();
-        $user->user = $request->user;
-        $user->email = $request->email;
-        $user->password = $request->password;
-        $user->role_id = $request->role_id;
-        if (
-            $user->save()
-        ) {
-            return response()->json(['message' => 'ok']);
+        try {
+            $validatedData = $request->validate([
+                'user' => 'required|unique:users',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:6',
+                'role_id' => 'required'
+            ]);
+            
+            $user = User::create($validatedData);
+            return response()->json($user, 201);
+        } catch (ValidationException $e) {
+            return response()->json($e, 400);
         }
+        
     }
 
     /**
@@ -87,14 +85,19 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $existingUser = User::findOrFail($user->id);
-        if ($existingUser) {
-            $existingUser->user = $request->user;
-            $existingUser->role_id = $request->role_id;
-            $existingUser->save();
-            return response()->json(['message' => 'ok']);
-        }
-        return response()->json(['message' => 'error']);
+        $id = $user->id;
+        $validatedData = $request->validate([
+
+            'user' => 'required|unique:users,user,' . $id,
+            'email' => 'required|email|unique:users,email,' . $id,
+            'password' => 'nullable|min:8',
+            'role_id' => 'required|exists:roles,id'
+        ]);
+    
+        $user = User::findOrFail($id);
+        $user->update($validatedData);
+    
+        return response()->json($user, 200);
     }
 
     /**

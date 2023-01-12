@@ -11,4 +11,8 @@ class User extends Model
 
     protected $fillable = ['user', 'email', 'password', 'role_id'];
 
+
+    public function role() {
+        return $this->belongsTo(Role::class);
+    }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [UserController::class, 'index']);
+// Route::get('/users/create', [UserController::class, 'create']);
+
+// Route::post('/users/create', [UserController::class, 'store'])->name('users.create');
+
+// Route::resource('/', UserController::class);
+// Route::resource('/', RoleController::class);

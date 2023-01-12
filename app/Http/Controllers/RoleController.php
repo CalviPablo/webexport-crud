@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Role;
+use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -34,15 +35,18 @@ class RoleController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'role_name' => 'required|unique:roles',
-        ]);
+    public function store(Request $request) {
+        try {
+            $validatedData = $request->validate([
+                'role_name' => 'required|unique:roles',
+            ]);
 
-        $role = new Role();
-        $role->role_name = $request->role_name;
-        $role->save();
+            $role = Role::create($validatedData);
+            return $role;
+            return response()->json($role, 201);
+        } catch (ValidationException $e) {
+            return response()->json($e, 400);
+        }
     }
 
     /**
@@ -77,13 +81,15 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
-        $existingRole = Role::findOrFail($role->id);
-        if ($existingRole) {
-            $existingRole->role_name = $request->role_name;
-            $existingRole->save();
-            return response()->json(['message' => 'ok']);
-        }
-        return response()->json(['message' => 'error']);
+        $id = $role->id;
+        $validatedData = $request->validate([
+            'role_name' => 'required|unique:roles',
+        ]);
+    
+        $role = Role::findOrFail($id);
+        $role->update($validatedData);
+    
+        return response()->json($role, 200);
     }
 
     /**
